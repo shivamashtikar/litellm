@@ -24,6 +24,7 @@ class HostedVLLMChatConfig(OpenAIGPTConfig):
     def get_supported_openai_params(self, model: str) -> List[str]:
         params = super().get_supported_openai_params(model)
         params.append("reasoning_effort")
+        params.append("cache_salt")
         return params
 
     def map_openai_params(

@@ -7438,6 +7438,20 @@ async def async_queue_request(
         )
         data["metadata"]["endpoint"] = str(request.url)
 
+        # Auto-set cache_salt for vLLM models if enabled
+        if (
+            general_settings.get("vllm_auto_cache_salt", False)
+            and user_api_key_dict.user_id is not None
+            and "cache_salt" not in data
+        ):
+            # Check if model is vLLM (model name contains 'vllm' or uses vllm provider)
+            model_name = data.get("model", "").lower()
+            if "vllm" in model_name or model_name.startswith("hosted_vllm/"):
+                data["cache_salt"] = user_api_key_dict.user_id
+                verbose_proxy_logger.debug(
+                    f"Auto-set cache_salt for vLLM model: {data.get('model')} to user_id: {user_api_key_dict.user_id}"
+                )
+
         global user_temperature, user_request_timeout, user_max_tokens, user_api_base
         # override with user settings, these are params passed via cli
         if user_temperature:

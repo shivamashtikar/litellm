@@ -1709,6 +1709,10 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
         default=None,
         description="Set-up pass-through endpoints for provider-specific endpoints. Docs - https://docs.litellm.ai/docs/proxy/pass_through",
     )
+    vllm_auto_cache_salt: Optional[bool] = Field(
+        default=False,
+        description="Automatically set cache_salt to user_api_key_user_id for vLLM requests to enable per-user cache isolation. When enabled, each user's requests will have isolated cache, preventing timing-based information leakage across users.",
+    )
 
 
 class ConfigYAML(LiteLLMPydanticObjectBase):
