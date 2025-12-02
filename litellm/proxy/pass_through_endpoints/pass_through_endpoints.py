@@ -441,6 +441,7 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
         logging_obj: LiteLLMLoggingObj,
         _parsed_body: Optional[dict] = None,
         litellm_call_id: Optional[str] = None,
+        custom_llm_provider: Optional[str] = None,
     ) -> dict:
         """
         Filter out litellm params from the request body
@@ -453,6 +454,24 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
         for k in all_litellm_params:
             if k in _parsed_body:
                 litellm_params_in_body[k] = _parsed_body.pop(k, None)
+
+        # Auto-set cache_salt for vLLM passthrough endpoints if enabled
+        from litellm.proxy.proxy_server import general_settings
+
+        if (
+            general_settings.get("vllm_auto_cache_salt", False)
+            and user_api_key_dict.user_id is not None
+            and "cache_salt" not in litellm_params_in_body
+            and "cache_salt" not in _parsed_body
+        ):
+            # Check if this is a vLLM endpoint
+            if custom_llm_provider == "vllm" or (
+                request.url.path and "/vllm/" in request.url.path
+            ):
+                _parsed_body["cache_salt"] = user_api_key_dict.user_id
+                verbose_proxy_logger.debug(
+                    f"Auto-set cache_salt for vLLM passthrough endpoint to user_id: {user_api_key_dict.user_id}"
+                )
 
         _metadata = dict(
             StandardLoggingUserAPIKeyMetadata(

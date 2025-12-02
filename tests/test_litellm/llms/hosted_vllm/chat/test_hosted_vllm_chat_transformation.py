@@ -101,3 +101,42 @@ def test_hosted_vllm_supports_reasoning_effort():
         drop_params=False,
     )
     assert optional_params["reasoning_effort"] == "high"
+
+
+def test_hosted_vllm_supports_cache_salt():
+    """Test that cache_salt parameter is supported and passed through correctly"""
+    config = HostedVLLMChatConfig()
+    supported_params = config.get_supported_openai_params(
+        model="hosted_vllm/llama-3.1-70b-instruct"
+    )
+    assert "cache_salt" in supported_params
+
+    # Test that cache_salt is mapped correctly
+    optional_params = config.map_openai_params(
+        non_default_params={"cache_salt": "my-secure-salt-123"},
+        optional_params={},
+        model="hosted_vllm/llama-3.1-70b-instruct",
+        drop_params=False,
+    )
+    assert optional_params["cache_salt"] == "my-secure-salt-123"
+
+
+def test_hosted_vllm_cache_salt_in_request():
+    """Test that cache_salt is included in the transformed request"""
+    config = HostedVLLMChatConfig()
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Hello, world!"},
+    ]
+
+    transformed_request = config.transform_request(
+        model="hosted_vllm/llama-3.1-70b-instruct",
+        messages=messages,
+        optional_params={"cache_salt": "user-123-session-456"},
+        litellm_params={},
+        headers={},
+    )
+
+    # Verify cache_salt is in the transformed request
+    assert "cache_salt" in transformed_request
+    assert transformed_request["cache_salt"] == "user-123-session-456"

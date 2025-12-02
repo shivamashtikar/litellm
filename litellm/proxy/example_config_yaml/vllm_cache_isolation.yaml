@@ -1,0 +1,56 @@
+# Example configuration for vLLM cache isolation
+# This config enables automatic cache_salt assignment based on user_api_key_user_id
+# for improved security and privacy in multi-tenant deployments
+
+model_list:
+  - model_name: vllm-llama-70b
+    litellm_params:
+      model: hosted_vllm/llama-3.1-70b-instruct
+      api_base: http://your-vllm-server:8000  # Replace with your vLLM server URL
+
+  - model_name: vllm-llama-8b
+    litellm_params:
+      model: hosted_vllm/llama-3.1-8b-instruct
+      api_base: http://your-vllm-server:8000
+
+litellm_settings:
+  drop_params: True  # Drop unsupported params for vLLM
+  set_verbose: False
+
+general_settings:
+  master_key: sk-1234  # Your master key for authentication
+
+  # Enable automatic cache_salt assignment for vLLM models
+  # When enabled, each user's requests will automatically get a cache_salt
+  # set to their user_api_key_user_id, providing per-user cache isolation
+  vllm_auto_cache_salt: True
+
+  # Database URL for user management (required for user_api_key_user_id)
+  database_url: postgresql://user:password@localhost:5432/litellm
+
+  # Optional: Set up alerting
+  # alerting: ["slack"]
+
+  # Optional: Max parallel requests per key
+  # max_parallel_requests: 100
+
+# Example usage after starting the proxy:
+#
+# 1. Create a user and API key:
+#    curl -X POST http://localhost:4000/key/generate \
+#      -H "Authorization: Bearer sk-1234" \
+#      -H "Content-Type: application/json" \
+#      -d '{"user_id": "alice@example.com", "models": ["vllm-llama-70b"]}'
+#
+# 2. Use the generated key to make requests:
+#    curl http://localhost:4000/v1/chat/completions \
+#      -H "Authorization: Bearer <generated-key>" \
+#      -H "Content-Type: application/json" \
+#      -d '{
+#        "model": "vllm-llama-70b",
+#        "messages": [{"role": "user", "content": "Hello!"}]
+#      }'
+#
+# With vllm_auto_cache_salt: True, the proxy will automatically add:
+#   "cache_salt": "alice@example.com"
+# to the request sent to vLLM, ensuring Alice's cache is isolated from other users.

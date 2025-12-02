@@ -357,6 +357,7 @@ async def acompletion(
     top_logprobs: Optional[int] = None,
     deployment_id=None,
     reasoning_effort: Optional[Literal["minimal", "low", "medium", "high"]] = None,
+    cache_salt: Optional[str] = None,
     # set api_base, api_version, api_key
     base_url: Optional[str] = None,
     api_version: Optional[str] = None,
@@ -393,6 +394,7 @@ async def acompletion(
         frequency_penalty: It is used to penalize new tokens based on their frequency in the text so far.
         logit_bias (dict, optional): Used to modify the probability of specific tokens appearing in the completion.
         user (str, optional):  A unique identifier representing your end-user. This can help the LLM provider to monitor and detect abuse.
+        cache_salt (str, optional): (vLLM only) Salt for cache isolation. Used to prevent cache sharing across different requests for privacy/security. Requests with different salts will not reuse cached KV blocks.
         metadata (dict, optional): Pass in additional metadata to tag your completion calls - eg. prompt version, details, etc.
         api_base (str, optional): Base URL for the API (default is None).
         api_version (str, optional): API version (default is None).
@@ -897,6 +899,7 @@ def completion(  # type: ignore # noqa: PLR0915
     # openai v1.0+ new params
     reasoning_effort: Optional[Literal["minimal", "low", "medium", "high"]] = None,
     response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+    cache_salt: Optional[str] = None,
     seed: Optional[int] = None,
     tools: Optional[List] = None,
     tool_choice: Optional[Union[str, dict]] = None,
@@ -942,6 +945,7 @@ def completion(  # type: ignore # noqa: PLR0915
         frequency_penalty: It is used to penalize new tokens based on their frequency in the text so far.
         logit_bias (dict, optional): Used to modify the probability of specific tokens appearing in the completion.
         user (str, optional):  A unique identifier representing your end-user. This can help the LLM provider to monitor and detect abuse.
+        cache_salt (str, optional): (vLLM only) Salt for cache isolation. Used to prevent cache sharing across different requests for privacy/security. Requests with different salts will not reuse cached KV blocks.
         logprobs (bool, optional): Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message
         top_logprobs (int, optional): An integer between 0 and 5 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used.
         metadata (dict, optional): Pass in additional metadata to tag your completion calls - eg. prompt version, details, etc.
